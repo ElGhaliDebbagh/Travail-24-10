@@ -1,0 +1,149 @@
+---
+title: "Grade analysis"
+author: "EL Ghali DEBBAGH"
+format: html
+editor: visual
+---
+
+```{r}
+#| echo: false
+#| message: false
+here::i_am("r-101-grade-analysis.Rproj")
+library(here)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(vroom)
+library(knitr)
+library(stringr)
+```
+
+## Question 1
+
+```{r}
+#| message: false
+grades <- vroom(here("grades.csv"))
+
+#| echo: false
+#| message: false
+grades |> summarise(anyNA(Exam))
+is.na(c(1, 2, NA, 4, NA))
+```
+
+## Question 2
+
+```{r}
+#| echo: false
+#| message: false
+grades %>%
+  summarise(
+    Minimum = min(Exam, na.rm = TRUE),
+    Maximum = max(Exam, na.rm = TRUE),
+    Median = median(Exam, na.rm = TRUE),
+    Mean = mean(Exam, na.rm = TRUE)
+  ) %>%
+  kable()
+```
+
+## Question 3
+
+```{r}
+#| echo: false
+#| message: false
+not_take_exam_count <- grades %>%
+  count(is.na(Exam))
+print(not_take_exam_count)
+
+
+not_take_exam_count <- grades %>%
+  filter(is.na(Exam)) %>%
+  nrow()
+cat("The number of students who did not take the final exam is", not_take_exam_count)
+```
+
+## Question 4
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+ggplot(grades, aes(x = Exam)) +
+  geom_histogram() +
+  labs(
+    title = "Distribution of Grades at Exam",
+    x = "Exam Grades whitout na",
+    y = "Frequency")
+
+```
+
+## Question 5
+
+```{r}
+#| echo: false
+#| message: false
+students_by_group <- grades %>%
+  group_by(Group) %>%
+  summarise(Count = n())
+kable(students_by_group)
+```
+
+## Question 6
+
+```{r}
+#| echo: false
+#| message: false
+ggplot(grades, aes(x = Group, fill = Group)) + geom_bar() + 
+   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## Question 7
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+ggplot(grades, aes(x = Group, y = Exam, fill = Group)) +
+  geom_boxplot() +
+  labs(
+    title = "Distribution of Exam Grades by Group",
+    x = "Group",
+    y = "Exam Grades"
+  ) +  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## Question 8
+
+```{r}
+missed_exam_counts <- grades %>%
+  group_by(Group) %>%
+  summarise(Count_Missed_Exam = sum(is.na(Exam)))
+missed_exam_counts <- table(grades$Group, is.na(grades$Exam))
+missed_exam_counts <- as.data.frame(missed_exam_counts)
+colnames(missed_exam_counts) <- c("Group", "Count_Missed_Exam")
+missed_exam_counts
+```
+
+## Question 9
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+library(dplyr)
+
+missed_exam_counts <- grades %>%
+  summarise(Group, Count_Missed_Exam = sum(is.na(Exam)))
+missed_exam_counts
+
+
+library(ggplot2)
+
+ggplot(missed_exam_counts, aes(x = Group, y = Count_Missed_Exam)) +
+  geom_col(fill = "orange") +
+  labs(
+    title = "Number of Students Who Missed the Exam by Group",
+    x = "Group",
+    y = "Count"
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
